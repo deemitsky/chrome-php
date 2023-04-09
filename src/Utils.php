@@ -111,8 +111,12 @@ class Utils
         if ($position < 1) throw new EvaluationFailed('position bellow minimum');
         if ($position > $elementCount) throw new EvaluationFailed('position upper maximum');
 
-        return $page
+        $element = $page
             ->evaluate(\sprintf('JSON.parse(JSON.stringify(%s.getBoundingClientRect()));', $selector->expressionFindOne($position)))
             ->getReturnValue();
+
+        $element['pageX'] = $page->evaluate('scrollX')->getReturnValue();
+        $element['pageY'] = $page->evaluate('scrollY')->getReturnValue();
+        return $element;
     }
 }
