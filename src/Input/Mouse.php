@@ -25,6 +25,8 @@ class Mouse
     public const BUTTON_NONE = 'none';
     public const BUTTON_RIGHT = 'right';
     public const BUTTON_MIDDLE = 'middle';
+    public const PIN_LEFT = 1;
+    public const PIN_TOP = 2;
 
     /**
      * @var Page
@@ -264,9 +266,9 @@ class Mouse
      *
      * @return $this
      */
-    public function find(string $selectors, int $position = 1): self
+    public function find(string $selectors, int $position = 1, int $pin = 0): self
     {
-        $this->findElement(new CssSelector($selectors), $position);
+        $this->findElement(new CssSelector($selectors), $position, $pin);
 
         return $this;
     }
@@ -292,15 +294,11 @@ class Mouse
      *
      * @return $this
      */
-    public function findElement(Selector $selector, int $position = 1): self
+    public function findElement(Selector $selector, int $position = 1, int $pin = 0): self
     {
         $this->page->assertNotClosed();
 
-        try {
-            $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
-        } catch (JavascriptException $exception) {
-            throw new ElementNotFoundException('The search for "'.$selector->expressionCount().'" returned no result.');
-        }
+        $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
 
         if (false === \array_key_exists('x', $element)) {
             throw new ElementNotFoundException('The search for "'.$selector->expressionFindOne($position).'" returned an element with no position.');
@@ -311,15 +309,13 @@ class Mouse
 
         $this->scrollToBoundary($rightBoundary, $bottomBoundary);
 
-        $visibleArea = $this->page->getLayoutMetrics()->getLayoutViewport();
+        $offsetX = $element['pageX'];
+        $offsetY = $element['pageY'];
+        $minX = $element['left'];
+        $minY = $element['top'];
 
-        $offsetX = $visibleArea['pageX'];
-        $offsetY = $visibleArea['pageY'];
-        $minX = $element['left'] - $offsetX;
-        $minY = $element['top'] - $offsetY;
-
-        $positionX = \floor($minX + (($rightBoundary - $offsetX) - $minX) / 2);
-        $positionY = \ceil($minY + (($bottomBoundary - $offsetY) - $minY) / 2);
+        $positionX = $pin & self::PIN_LEFT ? $minX + 4 : \floor($minX + (($rightBoundary - $offsetX) - $minX) / 2);
+        $positionY = $pin & self::PIN_TOP ? $minY + 4 : \ceil($minY + (($bottomBoundary - $offsetY) - $minY) / 2);
 
         $this->move($positionX, $positionY);
 

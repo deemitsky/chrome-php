@@ -15,6 +15,7 @@ use HeadlessChromium\Communication\Connection;
 use HeadlessChromium\Communication\Message;
 use HeadlessChromium\Dom\Selector\Selector;
 use HeadlessChromium\Exception\CommunicationException;
+use HeadlessChromium\Exception\EvaluationFailed;
 use HeadlessChromium\Exception\JavascriptException;
 use HeadlessChromium\Exception\OperationTimedOut;
 
@@ -107,8 +108,8 @@ class Utils
             ->evaluate(\sprintf('JSON.parse(JSON.stringify(%s));', $selector->expressionCount()))
             ->getReturnValue();
 
-        $position = \max(1, $position);
-        $position = \min($position, $elementCount);
+        if ($position < 1) throw new EvaluationFailed('position bellow minimum');
+        if ($position > $elementCount) throw new EvaluationFailed('position upper maximum');
 
         return $page
             ->evaluate(\sprintf('JSON.parse(JSON.stringify(%s.getBoundingClientRect()));', $selector->expressionFindOne($position)))
