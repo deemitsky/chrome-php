@@ -288,17 +288,21 @@ class Mouse
      * @param Selector $selector selector to use
      * @param int      $position (optional) which element of the result set should be used
      *
-     * @throws \HeadlessChromium\Exception\CommunicationException
-     * @throws \HeadlessChromium\Exception\NoResponseAvailable
+     * @return $this|null
+     *@throws \HeadlessChromium\Exception\NoResponseAvailable
      * @throws \HeadlessChromium\Exception\ElementNotFoundException
      *
-     * @return $this
+     * @throws \HeadlessChromium\Exception\CommunicationException
      */
-    public function findElement(Selector $selector, int $position = 1, int $pin = 0): self
+    public function findElement(Selector $selector, int $position = 1, int $pin = 0): ?self
     {
         $this->page->assertNotClosed();
 
-        $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
+        try {
+            $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
+        } catch (JavascriptException $exception) {
+            return null;
+        }
 
         if (false === \array_key_exists('x', $element)) {
             throw new ElementNotFoundException('The search for "'.$selector->expressionFindOne($position).'" returned an element with no position.');
