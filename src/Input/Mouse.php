@@ -300,7 +300,7 @@ class Mouse
 
         try {
             $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
-        } catch (JavascriptException $exception) {
+        } catch (Throwable $exception) {
             return null;
         }
 
@@ -312,14 +312,15 @@ class Mouse
         $bottomBoundary = \floor($element['bottom']);
 
         $this->scrollToBoundary($rightBoundary, $bottomBoundary);
+        $element = Utils::getElementPositionFromPage($this->page, $selector, $position);  // new pos after scroll
 
         $offsetX = $element['pageX'];
         $offsetY = $element['pageY'];
         $minX = $element['left'];
         $minY = $element['top'];
 
-        $positionX = $pin & self::PIN_LEFT ? $minX + 4 : \floor($minX + (($rightBoundary - $offsetX) - $minX) / 2);
-        $positionY = $pin & self::PIN_TOP ? $minY + 4 : \ceil($minY + (($bottomBoundary - $offsetY) - $minY) / 2);
+        $positionX = \floor($pin & self::PIN_LEFT ? $minX + 4 : $minX + (($rightBoundary - $offsetX) - $minX) / 2);
+        $positionY = \ceil($pin & self::PIN_TOP ? $minY + 4 : $minY + (($bottomBoundary - $offsetY) - $minY) / 2);
 
         $this->move($positionX, $positionY);
 
