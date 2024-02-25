@@ -300,7 +300,7 @@ class Mouse
 
         try {
             $element = Utils::getElementPositionFromPage($this->page, $selector, $position);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return null;
         }
 
